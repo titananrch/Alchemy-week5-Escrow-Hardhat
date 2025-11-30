@@ -1,70 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --font-sans: "Geist", sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}
+/* Global Dark Theme */
 body {
-  background-color: #eee;
-  display: flex;
-  font-family: 'Muli', sans-serif;
+  @apply bg-[#0d0d0f] text-gray-200 antialiased min-h-screen;
+  font-family: var(--font-sans);
 }
 
-.contract, .existing-contracts {
-  margin: 20px;
-  display: inline-block;
-  padding: 40px;
-  border: 1px solid #ddd;
-  background-color: #fff;
+/* Smooth glow animation */
+@keyframes glow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
-h1 {
-  margin: 10px;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+.font-mono {
+  font-family: var(--font-mono);
 }
 
-label {
-  display: flex;
-  flex-direction: column;
-  text-transform: uppercase;
-  color: #aaa;
-  margin: 20px;
+.glow {
+  animation: glow 2s infinite ease-in-out;
 }
 
-input[type="text"] {
-  padding: 6px;
-  font-size: 18px;
-}
-
-.button {
-  background-color: #f58427;
-  color: white;
-  text-align: center;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin: 20px;
-  padding: 9px 25px;
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-
-.existing-contract ul {
-  padding: 10px;
-  margin: 20px;
-  background-color: #eee;
-}
-
-.existing-contract ul > li {
-  list-style: none;
-  display: flex;
-  margin: 10px;
-}
-
-.existing-contract ul > li > div {
-  margin: 0 5px;
-}
-
-.existing-contract ul > li > :first-child {
-  font-weight: bold;
-}
-
-.existing-contract .complete {
-  color: #5aa75a;
-  text-align: center;
-}

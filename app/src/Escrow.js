@@ -6,32 +6,40 @@ export default function Escrow({
   handleApprove,
 }) {
   return (
-    <div className="existing-contract">
-      <ul className="fields">
-        <li>
-          <div> Arbiter </div>
-          <div> {arbiter} </div>
-        </li>
-        <li>
-          <div> Beneficiary </div>
-          <div> {beneficiary} </div>
-        </li>
-        <li>
-          <div> Value </div>
-          <div> {value} </div>
-        </li>
-        <div
-          className="button"
-          id={address}
-          onClick={(e) => {
-            e.preventDefault();
+    <div
+      className="
+      p-4 rounded-xl border border-white/20
+      bg-white/10 backdrop-blur-lg
+      text-white font-mono
+      hover:bg-white/20 transition-all
+    ">
+      <div className="flex justify-between text-sm mb-2">
+        <span className="text-white/60">Arbiter</span>
+        <span>{arbiter}</span>
+      </div>
 
-            handleApprove();
-          }}
-        >
-          Approve
-        </div>
-      </ul>
+      <div className="flex justify-between text-sm mb-2">
+        <span className="text-white/60">Beneficiary</span>
+        <span>{beneficiary}</span>
+      </div>
+
+      <div className="flex justify-between text-sm mb-4">
+        <span className="text-white/60">Value (ETH)</span>
+        <span>{value}</span>
+      </div>
+
+      <button
+        id={address}
+        onClick={handleApprove}
+        className="
+          w-full py-2 rounded-lg text-sm font-semibold text-center
+          bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600
+          hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500
+          transition-all
+        "
+      >
+        Approve
+      </button>
     </div>
   );
 }
