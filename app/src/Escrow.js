@@ -3,6 +3,7 @@ export default function Escrow({
   arbiter,
   beneficiary,
   value,
+  approved,
   handleApprove,
 }) {
   return (
@@ -12,7 +13,8 @@ export default function Escrow({
       bg-white/10 backdrop-blur-lg
       text-white font-mono
       hover:bg-white/20 transition-all
-    ">
+    "
+    >
       <div className="flex justify-between text-sm mb-2">
         <span className="text-white/60">Arbiter</span>
         <span>{arbiter}</span>
@@ -28,18 +30,22 @@ export default function Escrow({
         <span>{value}</span>
       </div>
 
-      <button
-        id={address}
-        onClick={handleApprove}
-        className="
+      {approved ? (
+        <p className="text-green-300 font-medium">✓ Approved</p>
+      ) : (
+        <button
+          id={address}
+          onClick={handleApprove}
+          className="
           w-full py-2 rounded-lg text-sm font-semibold text-center
           bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600
           hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500
           transition-all
         "
-      >
-        Approve
-      </button>
+        >
+          Approve
+        </button>
+      )}
     </div>
   );
 }

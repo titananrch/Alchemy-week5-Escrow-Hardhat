@@ -3,60 +3,84 @@ export default function NewContractForm({ newContract }) {
     <div
       className="
       w-full max-w-xl bg-transparent border border-white/30
-      rounded-2xl px-10 pb-20 pt-14
+      rounded-2xl
       backdrop-hue-rotate-15 backdrop-blur-2xl
-    ">
-      <h1 className="text-2xl text-center font-black mb-8 text-white">
-        New Contract
-      </h1>
-
-      {/* Arbiter */}
-      <label className="flex flex-col mb-6 text-sm text-white font-mono">
-        Arbiter Address
-        <input
-          type="text"
-          id="arbiter"
-          className="mt-2 bg-white/20 hover:bg-white/30 text-white 
+    "
+    >
+      <div className="rounded-t-2xl bg-white/10 backdrop-blur-2xl mb-4 py-6 px-8">
+        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r">
+          Create New Escrow Contract
+        </h1>
+        <p className="text-md text-white/60 font-light mt-1">
+          Define the arbiter, beneficiary, and deposit.
+        </p>
+      </div>
+      <div className="px-8 pb-10 pt-4">
+        {/* Arbiter */}
+        <label className="flex flex-col mb-6 text-sm text-white font-mono">
+          Arbiter Address
+          <input
+            type="text"
+            id="arbiter"
+            className="mt-2 bg-white/20 hover:bg-white/30 text-white 
           border border-white/20 rounded-lg px-3 py-2 
           focus:ring-1 focus:ring-white outline-none"
-        />
-      </label>
+          />
+        </label>
 
-      {/* Beneficiary */}
-      <label className="flex flex-col mb-6 text-sm text-white font-mono">
-        Beneficiary Address
-        <input
-          type="text"
-          id="beneficiary"
-          className="mt-2 bg-white/20 hover:bg-white/30 text-white 
+        {/* Beneficiary */}
+        <label className="flex flex-col mb-6 text-sm text-white font-mono">
+          Beneficiary Address
+          <input
+            type="text"
+            id="beneficiary"
+            className="mt-2 bg-white/20 hover:bg-white/30 text-white 
           border border-white/20 rounded-lg px-3 py-2 
           focus:ring-1 focus:ring-white outline-none"
-        />
-      </label>
+          />
+        </label>
 
-      {/* Deposit */}
-      <label className="flex flex-col text-sm text-white font-mono">
-        Deposit Amount (ETH)
-        <input
-          type="text"
-          id="eth"
-          className="mt-2 bg-white/20 hover:bg-white/30 text-white 
+        {/* Deposit */}
+        <label className="flex flex-col text-sm text-white font-mono">
+          Deposit Amount (ETH)
+          <input
+            type="text"
+            id="eth"
+            className="mt-2 bg-white/20 hover:bg-white/30 text-white 
           border border-white/20 rounded-lg px-3 py-2 
           focus:ring-1 focus:ring-white outline-none"
-        />
-      </label>
+          />
+        </label>
 
-      {/* Deploy button */}
-      <div
-        onClick={newContract}
-        className="
+        {/* Deploy button */}
+        <div
+          onClick={newContract}
+          className="
         w-full text-center text-white text-sm
         bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600
         hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500
         mt-10 py-3 font-semibold rounded-xl cursor-pointer
-        transition-all
-      ">
-        Deploy
+      "
+        >
+          Deploy
+        </div>
+        <div className="mt-10 text-center text-white/70 text-sm">
+          <p className="mb-3">Already deployed an Escrow manually?</p>
+
+          <div
+            className="inline-block cursor-pointer underline hover:text-white"
+            onClick={() => {
+              const address = prompt("Enter contract address:");
+              if (address) {
+                window.dispatchEvent(
+                  new CustomEvent("import-escrow", { detail: { address } })
+                );
+              }
+            }}
+          >
+            Import Existing Contract
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,46 +1,131 @@
-import { createRef ,useRef } from "react";
-import { gsap } from "gsap";
+'use client';
 
-export default function Dock({ activePanel, setActivePanel }) {
-  const icons = [
-    { id: "new", label: "New Contract", emoji: "📝" },
-    { id: "existing", label: "Existing", emoji: "📄" },
-  ];
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'motion/react';
+import { Children, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 
-  // Create refs for each icon
-  const iconRefs = useRef(icons.map(() => createRef()));
+function DockItem({ children, className = '', onClick, mouseX, spring, distance, magnification, baseItemSize }) {
+  const ref = useRef(null);
+  const isHovered = useMotionValue(0);
 
-  const handleHover = (index, scale) => {
-    gsap.to(iconRefs.current[index].current, {
-      scale,
-      duration: 0.1,
-      ease: "power4.in",
-    });
-  };
+  const mouseDistance = useTransform(mouseX, val => {
+    const rect = ref.current?.getBoundingClientRect() ?? {
+      x: 0,
+      width: baseItemSize
+    };
+    return val - rect.x - baseItemSize / 2;
+  });
+
+  const targetSize = useTransform(mouseDistance, [-distance, 0, distance], [baseItemSize, magnification, baseItemSize]);
+  const size = useSpring(targetSize, spring);
 
   return (
-    <div className="
-      fixed bottom-6 left-1/2 -translate-x-1/2
-      flex items-end gap-6
-      bg-transparent backdrop-blur-xl
-      py-4 px-8 border border-white/30 rounded-2xl
-      z-50
-    ">
-      {icons.map((icon, index) => (
-        <div
-          key={icon.id}
-          ref={iconRefs.current[index]}
-          onMouseEnter={() => handleHover(index, 1.3)}
-          onMouseLeave={() => handleHover(index, 1)}
-          onClick={() => setActivePanel(icon.id)}
-          className={`
-            text-4xl cursor-pointer transition-all select-none
-            ${activePanel === icon.id ? "drop-shadow-[0_5px_10px_rgba(5,150,105,1)]" : ""}
-          `}
+    <motion.div
+      ref={ref}
+      style={{
+        width: size,
+        height: size
+      }}
+      onHoverStart={() => isHovered.set(1)}
+      onHoverEnd={() => isHovered.set(0)}
+      onFocus={() => isHovered.set(1)}
+      onBlur={() => isHovered.set(0)}
+      onClick={onClick}
+      className={`relative inline-flex items-center justify-center rounded-xl bg-black/20 backdrop-blur-2xl border-neutral-600 border ${className}`}
+      tabIndex={0}
+      role="button"
+      aria-haspopup="true"
+    >
+      {Children.map(children, child => cloneElement(child, { isHovered }))}
+    </motion.div>
+  );
+}
+
+function DockLabel({ children, className = '', ...rest }) {
+  const { isHovered } = rest;
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = isHovered.on('change', latest => {
+      setIsVisible(latest === 1);
+    });
+    return () => unsubscribe();
+  }, [isHovered]);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: 0 }}
+          animate={{ opacity: 1, y: -10 }}
+          exit={{ opacity: 0, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-neutral-700 bg-[#060010] px-2 py-0.5 text-xs text-white`}
+          role="tooltip"
+          style={{ x: '-50%' }}
         >
-          {icon.emoji}
-        </div>
-      ))}
-    </div>
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function DockIcon({ children, className = '' }) {
+  return <div className={`flex items-center justify-center ${className}`}>{children}</div>;
+}
+
+export default function Dock({
+  items,
+  className = '',
+  spring = { mass: 0.1, stiffness: 150, damping: 12 },
+  magnification = 70,
+  distance = 200,
+  panelHeight = 64,
+  dockHeight = 256,
+  baseItemSize = 50
+}) {
+  const mouseX = useMotionValue(Infinity);
+  const isHovered = useMotionValue(0);
+
+  const maxHeight = useMemo(
+    () => Math.max(dockHeight, magnification + magnification / 2 + 4),
+    [magnification, dockHeight]
+  );
+  const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
+  const height = useSpring(heightRow, spring);
+
+  return (
+    <motion.div style={{ height, scrollbarWidth: 'none' }} className="flex max-w-full items-center fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+      <motion.div
+        onMouseMove={({ pageX }) => {
+          isHovered.set(1);
+          mouseX.set(pageX);
+        }}
+        onMouseLeave={() => {
+          isHovered.set(0);
+          mouseX.set(Infinity);
+        }}
+        className={`${className} absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-end w-fit gap-4 bg-black/20 backdrop-blur-2xl rounded-xl border-neutral-600 border pb-2 px-4`}
+        style={{ height: panelHeight}}
+        role="toolbar"
+        aria-label="Application dock"
+      >
+        {items.map((item, index) => (
+          <DockItem
+            key={index}
+            onClick={item.onClick}
+            className={item.className}
+            mouseX={mouseX}
+            spring={spring}
+            distance={distance}
+            magnification={magnification}
+            baseItemSize={baseItemSize}
+          >
+            <DockIcon>{item.icon}</DockIcon>
+            <DockLabel>{item.label}</DockLabel>
+          </DockItem>
+        ))}
+      </motion.div>
+    </motion.div>
   );
 }
