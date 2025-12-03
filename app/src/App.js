@@ -7,6 +7,7 @@ import ExistingContracts from "./ExistingContracts";
 import PanelWrapper from "./PanelWrapper";
 import deploy from "./deploy";
 import EscrowArtifact from "./artifacts/contracts/Escrow.sol/Escrow.json";
+import ImportModal from "./ImportModal";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -21,6 +22,7 @@ function App() {
   const [escrows, setEscrows] = useState([]);
   const [activePanel, setActivePanel] = useState("new");
   const [hasRestored, setHasRestored] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     async function initWallet() {
@@ -97,6 +99,47 @@ function App() {
     localStorage.setItem("escrows", JSON.stringify(minimalData));
   }, [escrows, hasRestored]);
 
+  useEffect(() => {
+    const openModal = () => setImportOpen(true);
+    window.addEventListener("open-import-modal", openModal);
+    return () => window.removeEventListener("open-import-modal", openModal);
+  }, []);
+
+  async function importEscrow(address, setError, onSuccess) {
+    if (!ethers.utils.isAddress(address)) {
+      setError("Invalid Ethereum address.");
+      return;
+    }
+
+    try {
+      const contract = new ethers.Contract(address, EscrowArtifact.abi, signer);
+
+      const arbiter = await contract.arbiter();
+      const beneficiary = await contract.beneficiary();
+      const approved = await contract.isApproved();
+
+      const escrow = {
+        address,
+        arbiter,
+        beneficiary,
+        value: "Unknown",
+        approved,
+        handleApprove: async () => {
+          contract.on("Approved", () => {
+            document.getElementById(address).innerText = "It's approved!";
+          });
+          await approve(contract, signer);
+        },
+      };
+
+      setEscrows((prev) => [...prev, escrow]);
+
+      onSuccess(); // closes modal
+    } catch (err) {
+      setError("This is not a valid Escrow contract.");
+    }
+  }
+
   async function newContract() {
     const beneficiary = document.getElementById("beneficiary").value;
     const arbiter = document.getElementById("arbiter").value;
@@ -168,6 +211,11 @@ function App() {
         ]}
         magnification={90}
         baseItemSize={42}
+      />
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImport={importEscrow}
       />
     </div>
   );

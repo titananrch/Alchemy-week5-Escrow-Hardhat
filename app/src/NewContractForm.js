@@ -65,21 +65,16 @@ export default function NewContractForm({ newContract }) {
           Deploy
         </div>
         <div className="mt-10 text-center text-white/70 text-sm">
-          <p className="mb-3">Already deployed an Escrow manually?</p>
+          <p className="mb-1">Already deployed an Escrow manually?</p>
 
-          <div
-            className="inline-block cursor-pointer underline hover:text-white"
-            onClick={() => {
-              const address = prompt("Enter contract address:");
-              if (address) {
-                window.dispatchEvent(
-                  new CustomEvent("import-escrow", { detail: { address } })
-                );
-              }
-            }}
+          <button
+            className="underline hover:text-white cursor-pointer"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("open-import-modal"))
+            }
           >
             Import Existing Contract
-          </div>
+          </button>
         </div>
       </div>
     </div>
