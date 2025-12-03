@@ -9,10 +9,10 @@ export default function Escrow({
   return (
     <div
       className="
-      p-4 rounded-xl border border-white/20
-      bg-white/10 backdrop-blur-lg
+      p-4 rounded-xl border border-white/10
+      bg-white/5 backdrop-blur-lg
       text-white font-mono
-      hover:bg-white/20 transition-all
+      hover:bg-white/10
     "
     >
       <div className="flex justify-between text-sm mb-2">
@@ -31,7 +31,7 @@ export default function Escrow({
       </div>
 
       {approved ? (
-        <p className="text-green-300 font-medium">✓ Approved</p>
+        <p className="text-green-300 text-sm font-medium">✓ Approved</p>
       ) : (
         <button
           id={address}
@@ -40,7 +40,6 @@ export default function Escrow({
           w-full py-2 rounded-lg text-sm font-semibold text-center
           bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600
           hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500
-          transition-all
         "
         >
           Approve

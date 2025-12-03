@@ -8,6 +8,7 @@ import PanelWrapper from "./PanelWrapper";
 import deploy from "./deploy";
 import EscrowArtifact from "./artifacts/contracts/Escrow.sol/Escrow.json";
 import ImportModal from "./ImportModal";
+import Toast from "./Toast";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -23,6 +24,16 @@ function App() {
   const [activePanel, setActivePanel] = useState("new");
   const [hasRestored, setHasRestored] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+
+  const [toast, setToast] = useState({ show: false, message: "" });
+
+  function showToast(message) {
+    setToast({ show: true, message });
+
+    setTimeout(() => {
+      setToast({ show: false, message: "" });
+    }, 2300);
+  }
 
   useEffect(() => {
     async function initWallet() {
@@ -147,28 +158,41 @@ function App() {
 
     const value = ethers.utils.parseEther(eth);
 
-    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
+    try {
+      const escrowContract = await deploy(signer, arbiter, beneficiary, value);
 
-    const escrow = {
-      address: escrowContract.address,
-      arbiter,
-      beneficiary,
-      value: eth,
-      approved: false,
-      handleApprove: async () => {
-        escrowContract.on("Approved", () => {
-          const elem = document.getElementById(escrowContract.address);
-          if (elem) {
-            elem.className = "complete";
-            elem.innerText = "It's been approved!";
-          }
-        });
+      const escrow = {
+        address: escrowContract.address,
+        arbiter,
+        beneficiary,
+        value: eth,
+        approved: false,
+        handleApprove: async () => {
+          escrowContract.on("Approved", () => {
+            const elem = document.getElementById(escrowContract.address);
+            if (elem) {
+              elem.className = "complete";
+              elem.innerText = "It's been approved!";
+              showToast("🎉 Contract Approved & Funds Released!");
+            }
+          });
 
-        await approve(escrowContract, signer);
-      },
-    };
+          await approve(escrowContract, signer);
+        },
+      };
 
-    setEscrows((prev) => [...prev, escrow]);
+      setEscrows((prev) => [...prev, escrow]);
+      // CLEAR FORM
+      document.getElementById("beneficiary").value = "";
+      document.getElementById("arbiter").value = "";
+      document.getElementById("eth").value = "";
+
+      // Toast notification
+      showToast("🥳 New Contract Deployed!");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to deploy contract.🥀");
+    }
   }
 
   return (
@@ -187,6 +211,8 @@ function App() {
           glow={1}
         />
       </div>
+
+      <Toast message={toast.message} show={toast.show} />
 
       {/* Panels */}
       <main className="fixed mt-20 mb-40 w-full flex justify-center">
