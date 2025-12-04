@@ -1,4 +1,8 @@
-export default function NewContractForm({ newContract }) {
+export default function NewContractForm({
+  newContract,
+  isDeploying,
+  formError,
+}) {
   return (
     <div
       className="
@@ -54,23 +58,31 @@ export default function NewContractForm({ newContract }) {
 
         {/* Deploy button */}
         <div
-          onClick={newContract}
-          className="
-        w-full text-center text-white text-sm
-        bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600
-        hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500
-        mt-10 py-3 font-semibold rounded-xl cursor-pointer
-      "
+          onClick={!isDeploying ? newContract : null}
+          className={`w-full text-center text-white mt-10 py-3 font-semibold rounded-xl
+            ${
+              isDeploying
+                ? "bg-white/20 border border-white/30 cursor-not-allowed"
+                : "cursor-pointer bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600 hover:from-indigo-500 hover:via-sky-500 hover:to-emerald-500"
+            }
+          `}
         >
-          Deploy
+          {isDeploying ? "Deploying..." : "Deploy"}
         </div>
+        {formError && (
+          <p className="text-red-500 text-sm mt-4 text-center">
+            {formError}
+          </p>
+        )}
+
         <div className="mt-10 text-center text-white/70 text-sm">
           <p className="mb-1">Already deployed an Escrow manually?</p>
 
           <button
-            className="underline hover:text-white cursor-pointer"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent("open-import-modal"))
+            className={`underline ${isDeploying ? "cursor-not-allowed" : "cursor-pointer"
+            }`}
+            onClick={!isDeploying? () =>
+              window.dispatchEvent(new CustomEvent("open-import-modal")) : null
             }
           >
             Import Existing Contract

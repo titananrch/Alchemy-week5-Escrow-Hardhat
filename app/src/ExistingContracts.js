@@ -1,6 +1,6 @@
 import Escrow from "./Escrow";
 
-export default function ExistingContracts({ escrows }) {
+export default function ExistingContracts({ escrows, userAddress }) {
   return (
     <div
       className="
@@ -28,10 +28,9 @@ export default function ExistingContracts({ escrows }) {
         className="
           flex-1
           h-full
-          overflow-y-auto pr-2 mx-2 my-2
-          rounded-xl
+          overflow-y-auto pr-2 py-2 mx-2
           space-y-4
-          scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent
+          scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent scroll-smooth
         "
       >
         {escrows.length === 0 && (
@@ -41,7 +40,7 @@ export default function ExistingContracts({ escrows }) {
         )}
 
         {escrows.map((escrow) => (
-          <Escrow key={escrow.address} {...escrow} />
+          <Escrow key={escrow.address} {...escrow} userAddress={userAddress}/>
         ))}
       </div>
     </div>

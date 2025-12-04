@@ -24,7 +24,9 @@ function App() {
   const [activePanel, setActivePanel] = useState("new");
   const [hasRestored, setHasRestored] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [userAddress, setUserAddress] = useState(null);
   const [toast, setToast] = useState({ show: false, message: "" });
 
   function showToast(message) {
@@ -40,6 +42,12 @@ function App() {
       const accounts = await provider.send("eth_requestAccounts", []);
       setAccount(accounts[0]);
       setSigner(provider.getSigner());
+      setUserAddress(accounts[0].toLowerCase());
+      window.ethereum.on("accountsChanged", (accounts) => {
+        setAccount(accounts[0]);
+        setSigner(provider.getSigner());
+        setUserAddress(accounts[0].toLowerCase());
+      });
     }
     initWallet();
   }, []);
@@ -72,14 +80,27 @@ function App() {
               value: e.value,
               approved: isApproved,
               handleApprove: async () => {
-                contract.on("Approved", () => {
-                  setEscrows((prev) =>
-                    prev.map((x) =>
-                      x.address === e.address ? { ...x, approved: true } : x
-                    )
-                  );
-                });
-                await approve(contract, signer);
+                try {
+                  contract.on("Approved", () => {
+                    showToast("🎉 Contract Approved & Funds Released!");
+
+                    setEscrows((prev) =>
+                      prev.map((item) =>
+                        item.address === e.address
+                          ? { ...item, approved: true }
+                          : item
+                      )
+                    );
+                  });
+
+                  await approve(contract, signer);
+                } catch (err) {
+                  if (err.code === 4001) {
+                    showToast("❌ You rejected the approval.");
+                  } else {
+                    showToast("🚫 Only the arbiter can approve this contract.");
+                  }
+                }
               },
             };
           } catch (err) {
@@ -152,13 +173,47 @@ function App() {
   }
 
   async function newContract() {
-    const beneficiary = document.getElementById("beneficiary").value;
-    const arbiter = document.getElementById("arbiter").value;
-    const eth = document.getElementById("eth").value;
+    const beneficiary = document.getElementById("beneficiary").value.trim();
+    const arbiter = document.getElementById("arbiter").value.trim();
+    const eth = document.getElementById("eth").value.trim();
+
+    setFormError(""); // reset old errors
+
+    // --- Address validation ---
+    if (!ethers.utils.isAddress(beneficiary)) {
+      return setFormError("❌ Beneficiary address is invalid.");
+    }
+
+    if (!ethers.utils.isAddress(arbiter)) {
+      return setFormError("❌ Arbiter address is invalid.");
+    }
+
+    const sender = await signer.getAddress();
+
+    if (arbiter.toLowerCase() === beneficiary.toLowerCase()) {
+      return setFormError(
+        "❌ Arbiter and Beneficiary cannot be the same address."
+      );
+    }
+
+    if (sender.toLowerCase() === arbiter.toLowerCase()) {
+      return setFormError("❌ You cannot assign yourself as the arbiter.");
+    }
+
+    if (sender.toLowerCase() === beneficiary.toLowerCase()) {
+      return setFormError("❌ You cannot be your own beneficiary.");
+    }
+
+    // --- ETH validation ---
+    if (isNaN(parseFloat(eth)) || parseFloat(eth) <= 0) {
+      return setFormError("❌ Deposit amount must be a positive number.");
+    }
 
     const value = ethers.utils.parseEther(eth);
 
     try {
+      setIsDeploying(true);
+
       const escrowContract = await deploy(signer, arbiter, beneficiary, value);
 
       const escrow = {
@@ -182,16 +237,32 @@ function App() {
       };
 
       setEscrows((prev) => [...prev, escrow]);
-      // CLEAR FORM
+
+      // Reset form
       document.getElementById("beneficiary").value = "";
       document.getElementById("arbiter").value = "";
       document.getElementById("eth").value = "";
 
-      // Toast notification
       showToast("🥳 New Contract Deployed!");
     } catch (err) {
-      console.error(err);
-      showToast("Failed to deploy contract.🥀");
+      // User rejected in MetaMask
+      if (err.code === 4001 || err.code === "ACTION_REJECTED") {
+        showToast("Deployment cancelled.🥀");
+        return setIsDeploying(false);
+      }
+
+      // Hardhat simulated revert (normal when cancelling)
+      if (err.message?.includes("Transaction reverted without a reason")) {
+        console.warn("Simulated call reverted (harmless during cancellation).");
+        showToast("Deployment cancelled.🥀");
+        return setIsDeploying(false);
+      }
+
+      // Unexpected errors
+      console.error("Deployment failed:", err);
+      showToast("🚨 Unexpected deployment error.");
+    } finally {
+      setIsDeploying(false);
     }
   }
 
@@ -217,11 +288,15 @@ function App() {
       {/* Panels */}
       <main className="fixed mt-20 mb-40 w-full flex justify-center">
         <PanelWrapper active={activePanel === "new"} direction="left">
-          <NewContractForm newContract={newContract} />
+          <NewContractForm
+            newContract={newContract}
+            isDeploying={isDeploying}
+            formError={formError}
+          />
         </PanelWrapper>
 
         <PanelWrapper active={activePanel === "existing"} direction="right">
-          <ExistingContracts escrows={escrows} />
+          <ExistingContracts escrows={escrows} userAddress={userAddress}/>
         </PanelWrapper>
       </main>
 
