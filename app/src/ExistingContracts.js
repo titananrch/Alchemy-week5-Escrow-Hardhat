@@ -40,7 +40,19 @@ export default function ExistingContracts({ escrows, userAddress }) {
         )}
 
         {escrows.map((escrow) => (
-          <Escrow key={escrow.address} {...escrow} userAddress={userAddress}/>
+          <Escrow
+            key={escrow.address}
+            address={escrow.address}
+            arbiter={escrow.arbiter}
+            beneficiary={escrow.beneficiary}
+            value={escrow.value}
+            approved={escrow.approved}
+            refunded={escrow.refunded}
+            contractInstance={escrow.contractInstance}
+            handleApprove={escrow.handleApprove}
+            handleRefund={escrow.handleRefund}
+            userAddress={userAddress}
+          />
         ))}
       </div>
     </div>

@@ -72,13 +72,18 @@ function App() {
             const arbiter = await contract.arbiter();
             const beneficiary = await contract.beneficiary();
             const isApproved = await contract.isApproved();
+            const isRefunded = await contract.isRefunded();
+            const deadline = await contract.deadline();
 
             return {
               address: e.address,
               arbiter,
               beneficiary,
               value: e.value,
+              contractInstance: contract,
               approved: isApproved,
+              refunded: isRefunded,
+              deadline: deadline.toString(),
               handleApprove: async () => {
                 try {
                   contract.on("Approved", () => {
@@ -96,9 +101,34 @@ function App() {
                   await approve(contract, signer);
                 } catch (err) {
                   if (err.code === 4001) {
-                    showToast("❌ You rejected the approval.");
+                    showToast("❌ Approval rejected.");
                   } else {
-                    showToast("🚫 Only the arbiter can approve this contract.");
+                    showToast("🚫 Only the arbiter can approve.");
+                  }
+                }
+              },
+              handleRefund: async () => {
+                try {
+                  contract.on("Refunded", () => {
+                    showToast("💸 Refunded to depositor!");
+
+                    setEscrows((prev) =>
+                      prev.map((item) =>
+                        item.address === e.address
+                          ? { ...item, refunded: true }
+                          : item
+                      )
+                    );
+                  });
+
+                  await contract.connect(signer).refund();
+                } catch (err) {
+                  if (err.code === 4001) {
+                    showToast("❌ Refund rejected.");
+                  } else if (/Deadline not passed/gi.test(err.reason)) {
+                    showToast("⏳ Refund not available until deadline.");
+                  } else {
+                    showToast("🚫 Only arbiter can refund.");
                   }
                 }
               },
@@ -126,6 +156,8 @@ function App() {
       beneficiary: e.beneficiary,
       value: e.value,
       approved: e.approved,
+      refunded: e.refunded,
+      deadline: e.deadline,
     }));
 
     localStorage.setItem("escrows", JSON.stringify(minimalData));
@@ -222,17 +254,50 @@ function App() {
         beneficiary,
         value: eth,
         approved: false,
+        refunded: false,
+        contractInstance: escrowContract,
+        deadline: (await escrowContract.deadline()).toString(),
+
         handleApprove: async () => {
           escrowContract.on("Approved", () => {
-            const elem = document.getElementById(escrowContract.address);
-            if (elem) {
-              elem.className = "complete";
-              elem.innerText = "It's been approved!";
-              showToast("🎉 Contract Approved & Funds Released!");
-            }
+            showToast("🎉 Contract Approved & Funds Released!");
+
+            setEscrows((prev) =>
+              prev.map((item) =>
+                item.address === escrowContract.address
+                  ? { ...item, approved: true }
+                  : item
+              )
+            );
           });
 
           await approve(escrowContract, signer);
+        },
+
+        handleRefund: async () => {
+          try {
+            escrowContract.on("Refunded", () => {
+              showToast("💸 Refunded to depositor!");
+
+              setEscrows((prev) =>
+                prev.map((item) =>
+                  item.address === escrowContract.address
+                    ? { ...item, refunded: true }
+                    : item
+                )
+              );
+            });
+
+            await escrowContract.connect(signer).refund();
+          } catch (err) {
+            if (err.code === 4001) {
+              showToast("❌ Refund cancelled.");
+            } else if (/Deadline not passed/.test(err.reason)) {
+              showToast("⏳ Refund only available after deadline.");
+            } else {
+              showToast("🚫 Only arbiter can refund.");
+            }
+          }
         },
       };
 
@@ -296,7 +361,7 @@ function App() {
         </PanelWrapper>
 
         <PanelWrapper active={activePanel === "existing"} direction="right">
-          <ExistingContracts escrows={escrows} userAddress={userAddress}/>
+          <ExistingContracts escrows={escrows} userAddress={userAddress} />
         </PanelWrapper>
       </main>
 
