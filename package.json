@@ -1,5 +1,5 @@
 {
-  "name": "Escrow-Hardhat",
+  "name": "EscrowHardhat",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -19,6 +19,7 @@
     "> 5%"
   ],
   "dependencies": {
+    "dotenv": "^17.2.3",
     "ethers": "^5.7.2",
     "react": "^18.2.0"
   }
