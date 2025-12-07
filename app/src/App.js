@@ -9,6 +9,7 @@ import deploy from "./deploy";
 import EscrowArtifact from "./artifacts/contracts/Escrow.sol/Escrow.json";
 import ImportModal from "./ImportModal";
 import Toast from "./Toast";
+import TutorialModal from "./TutorialModal";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -24,6 +25,7 @@ function App() {
   const [activePanel, setActivePanel] = useState("new");
   const [hasRestored, setHasRestored] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [formError, setFormError] = useState("");
   const [userAddress, setUserAddress] = useState(null);
@@ -167,6 +169,12 @@ function App() {
     const openModal = () => setImportOpen(true);
     window.addEventListener("open-import-modal", openModal);
     return () => window.removeEventListener("open-import-modal", openModal);
+  }, []);
+
+  useEffect(() => {
+    const openModal = () => setTutorialOpen(true);
+    window.addEventListener("open-tutorial-modal", openModal);
+    return () => window.removeEventListener("open-tutorial-modal", openModal);
   }, []);
 
   async function importEscrow(address, setError, onSuccess) {
@@ -382,6 +390,10 @@ function App() {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={importEscrow}
+      />
+      <TutorialModal
+        open={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
       />
     </div>
   );

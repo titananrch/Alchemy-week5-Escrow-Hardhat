@@ -19,7 +19,7 @@ export default function NewContractForm({
           Define the arbiter, beneficiary, and deposit.
         </p>
       </div>
-      <div className="px-8 pb-10 pt-4">
+      <div className="px-8 pb-6 pt-2">
         {/* Arbiter */}
         <label className="flex flex-col mb-6 text-sm text-white font-mono">
           Arbiter Address
@@ -70,22 +70,48 @@ export default function NewContractForm({
           {isDeploying ? "Deploying..." : "Deploy"}
         </div>
         {formError && (
-          <p className="text-red-500 text-sm mt-4 text-center">
-            {formError}
-          </p>
+          <p className="text-red-500 text-sm mt-4 text-center">{formError}</p>
         )}
 
-        <div className="mt-10 text-center text-white/70 text-sm">
-          <p className="mb-1">Already deployed an Escrow manually?</p>
+        {/* Bottom Action Section */}
+        <div className="mt-6 text-center text-white/70 text-sm space-y-3">
+          {/* Subtitle */}
+          <p className="text-white/60">
+            Already deployed an Escrow contract manually?
+          </p>
 
+          {/* Import Existing Contract */}
           <button
-            className={`underline ${isDeploying ? "cursor-not-allowed" : "cursor-pointer"
-            }`}
-            onClick={!isDeploying? () =>
-              window.dispatchEvent(new CustomEvent("open-import-modal")) : null
+            className={`
+              underline block mx-auto
+              hover:text-white underline-offset-4
+              ${isDeploying ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
+            `}
+            onClick={
+              !isDeploying
+                ? () =>
+                    window.dispatchEvent(new CustomEvent("open-import-modal"))
+                : null
             }
           >
             Import Existing Contract
+          </button>
+
+          {/* Tutorial Button */}
+          <button
+            className={`
+              block mx-auto
+              hover:text-white underline underline-offset-4
+              ${isDeploying ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
+            `}
+            onClick={
+              !isDeploying
+                ? () =>
+                    window.dispatchEvent(new CustomEvent("open-tutorial-modal"))
+                : null
+            }
+          >
+            View Quick Tutorial
           </button>
         </div>
       </div>
