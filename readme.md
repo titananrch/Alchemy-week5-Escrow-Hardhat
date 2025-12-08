@@ -77,8 +77,8 @@ escrow-dapp/
 ## ⚙️ Installation & Setup
 1️⃣ **Clone the project**
 ```
-git clone https://github.com/your-repo/escrow-dapp.git
-cd escrow-dapp
+git clone https://github.com/titananrch/Alchemy-week5-Escrow-Hardhat.git
+cd Alchemy-week5-Escrow-Hardhat
 ```
 2️⃣ **Install dependencies**
 1. Root (Hardhat)
